@@ -22,4 +22,4 @@ It may be okay:
 - when we do not need sorted data receive fast and we may wait for them as many as we need
 - or the dataset is not big, so the difference between sync sort vs sorting in idle maybe not big
 
-Consider a different approach if you need to sort big datasets without blocking the UI, but do it fast, like web worker (but be ready that transferring data main tread <===> to web worker cost some time), or better to move "sort big data sets" from "on the client" to backend level as usual. 
+Consider a different approach if you need to sort big datasets without blocking the UI, but do it fast, like web worker (but be ready that transferring data main tread <===> to web worker cost some time), or better to move "sort big data sets" from "on the client" to backend level if it's possible. 
