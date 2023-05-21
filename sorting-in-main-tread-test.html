@@ -1,0 +1,129 @@
+<body>
+    <script>
+        const testCount = 3
+        const items = generateItems(100000, 50)
+
+
+        for (let i = 0; i < testCount; i++) {
+            console.time('>> built-in sort')
+            const sorted = [...items].sort((a, b) => a.col1 - b.col1)
+            console.timeEnd('>> built-in sort')
+            // console.log('>> result', sorted)
+        }
+
+        for (let i = 0; i < testCount; i++) {
+            console.time('>> heap sort')
+            const sorted = heap_sort(items, (item) => item.col1)
+            console.timeEnd('>> heap sort')
+            // console.log('>> result', sorted)
+        }
+
+        for (let i = 0; i < testCount; i++) {
+            console.time('>> binary insert sort')
+            const sorted = binaryInsertionSort([...items], 0, items.length, 0, (a, b) => a.col1 - b.col1)
+            console.timeEnd('>> binary insert sort')
+            // console.log('>> result', sorted)
+        }
+
+        function generateItems(rowCount, colCount) {
+            const result = []
+            for (let i = 0; i < rowCount; i++) {
+                const item = {}
+                for (let j = 0; j < colCount; j++) {
+                    item[`col${j}`] = ~~(Math.random() * 1000)
+                }
+                result.push(item)
+            }
+
+            return result
+        }
+
+        // ---- Heap sort -----
+
+        function swap(input, index_A, index_B) {
+            var temp = input[index_A];
+
+            input[index_A] = input[index_B];
+            input[index_B] = temp;
+        }
+
+
+        function max_heapify(array, index, length, valueGetter) {
+            let left = 2 * index;
+            let right = 2 * index + 1;
+            let maximum;
+            if (right < length) {
+                if (valueGetter(array[left]) >= valueGetter(array[right])) {
+                    maximum = left;
+                } else {
+                    maximum = right;
+                }
+            } else if (left < length) {
+                maximum = left;
+            } else {
+                return;
+            }
+            if (valueGetter(array[index]) < valueGetter(array[maximum])) {
+                swap(array, index, maximum);
+                max_heapify(array, maximum, length, valueGetter);
+            }
+        }
+
+        function heap_sort(array, valueGetter) {
+            let length = array.length;
+            for (let i = Math.floor(length / 2) - 1; i >= 0; i--) {
+                max_heapify(array, i, length, valueGetter);
+            }
+            for (let i = length - 1; i >= 0; i--) {
+                swap(array, 0, i);
+                max_heapify(array, 0, i, valueGetter);
+            }
+            return array;
+        }
+
+        // ---- Binary insert sort -----
+
+        function binaryInsertionSort(array, lo, hi, start, compare) {
+            if (start === lo) {
+                start++;
+            }
+
+            for (; start < hi; start++) {
+                let pivot = array[start];
+
+                let left = lo;
+                let right = start;
+
+                while (left < right) {
+                    let mid = (left + right) >>> 1;
+
+                    if (compare(pivot, array[mid]) < 0) {
+                        right = mid;
+                    } else {
+                        left = mid + 1;
+                    }
+                }
+
+                let n = start - left;
+                switch (n) {
+                    case 3:
+                        array[left + 3] = array[left + 2];
+                    case 2:
+                        array[left + 2] = array[left + 1];
+                    case 1:
+                        array[left + 1] = array[left];
+                        break;
+                    default:
+                        while (n > 0) {
+                            array[left + n] = array[left + n - 1];
+                            n--;
+                        }
+                }
+
+                array[left] = pivot;
+            }
+
+            return array;
+        }
+    </script>
+</body>

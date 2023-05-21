@@ -1,0 +1,97 @@
+<body>
+    <script>
+        const items = generateItems(100000, 50)
+
+        const runSortingAsync = async () => {
+            console.time('>> idle sort');
+            const sorted = await idleSort([...items], (a, b) => a.col1 - b.col1);
+            console.timeEnd('>> idle sort');
+            // console.log('>> result', sorted);
+        }
+
+        runSortingAsync()
+
+        function generateItems(rowCount, colCount) {
+            const result = []
+            for (let i = 0; i < rowCount; i++) {
+                const item = {}
+                for (let j = 0; j < colCount; j++) {
+                    item[`col${j}`] = ~~(Math.random() * 1000)
+                }
+                result.push(item)
+            }
+
+            return result
+        }
+
+        function idleSort(array, compare) {
+            return new Promise((resolve) => {
+                scheduleSortingRun(array, 0, items.length, 0, compare, resolve)
+            })
+        }
+
+        function scheduleSortingRun(array, lo, hi, start, compare, resolveResult) {
+            const cb = (idleDeadline) => {
+                // console.log('>> requestIdleCallback callback', idleDeadline.didTimeout, idleDeadline.timeRemaining())
+
+                const sortingWorkFinished = binaryInsertionSort(array, lo, hi, start, compare, idleDeadline, resolveResult)
+                if (sortingWorkFinished) {
+                    resolveResult(array)
+                }
+            }
+            requestIdleCallback(cb)
+        }
+
+        // Implementation source https://github.com/mziccard/node-timsort/blob/master/src/timsort.js#L194
+        function binaryInsertionSort(array, lo, hi, start, compare, idleDeadline, resolveResult) {
+            let workFinished = true;
+
+            if (start === lo) {
+                start++;
+            }
+
+            for (; start < hi; start++) {
+                if (idleDeadline.timeRemaining() < 0.1) {
+                    scheduleSortingRun(array, start, hi, start, compare, resolveResult)
+                    workFinished = false
+                    break;
+                }
+
+                let pivot = array[start];
+
+                let left = lo;
+                let right = start;
+
+                while (left < right) {
+                    let mid = (left + right) >>> 1;
+
+                    if (compare(pivot, array[mid]) < 0) {
+                        right = mid;
+                    } else {
+                        left = mid + 1;
+                    }
+                }
+
+                let n = start - left;
+                switch (n) {
+                    case 3:
+                        array[left + 3] = array[left + 2];
+                    case 2:
+                        array[left + 2] = array[left + 1];
+                    case 1:
+                        array[left + 1] = array[left];
+                        break;
+                    default:
+                        while (n > 0) {
+                            array[left + n] = array[left + n - 1];
+                            n--;
+                        }
+                }
+
+                array[left] = pivot;
+            }
+
+            return workFinished;
+        }
+    </script>
+</body>
